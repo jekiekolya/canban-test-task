@@ -1,0 +1,23 @@
+mutation Register {
+  register(email: "test@example.com", password: "123456")
+}
+
+mutation Login {
+  login(email: "test@example.com", password: "123456")
+}
+
+mutation CreateBoard {
+  createBoard(title: "My Kanban Board") {
+    id
+    title
+  }
+}
+
+subscription OnCardUpdate {
+  cardUpdated(boardId: "some-board-id") {
+    id
+    title
+    columnId
+    order
+  }
+}

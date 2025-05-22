@@ -1,0 +1,54 @@
+type User {
+  id: ID!
+  email: String!
+}
+
+type Board {
+  id: ID!
+  title: String!
+  userId: String!
+  columns: [Column!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Column {
+  id: ID!
+  title: String!
+  boardId: String!
+  cards: [Card!]!
+  order: Int!
+}
+
+type Card {
+  id: ID!
+  title: String!
+  description: String
+  columnId: String!
+  order: Int!
+}
+
+type Query {
+  me: User
+  boards: [Board!]!
+}
+
+type Mutation {
+  login(email: String!, password: String!): String!
+  register(email: String!, password: String!): String!
+
+  createBoard(title: String!): Board!
+  createColumn(boardId: String!, title: String!, order: Int!): Column!
+  createCard(columnId: String!, title: String!, order: Int!, description: String): Card!
+
+  updateCard(id: ID!, title: String, description: String, order: Int): Card!
+  moveCard(id: ID!, newColumnId: String!, newOrder: Int!): Card!
+
+  deleteCard(id: ID!): Boolean!
+}
+
+type Subscription {
+  boardUpdated(boardId: ID!): Board!
+  columnUpdated(boardId: ID!): Column!
+  cardUpdated(boardId: ID!): Card!
+}
