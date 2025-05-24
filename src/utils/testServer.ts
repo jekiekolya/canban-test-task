@@ -1,12 +1,10 @@
-// src/utils/testServer.ts
 import { ApolloServer } from '@apollo/server'
-import { startStandaloneServer } from '@apollo/server/standalone'
 import { resolvers } from '../interfaces/resolvers'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { PrismaClient } from '@prisma/client'
 import { PubSub } from 'graphql-subscriptions'
-import { createContext } from '../infrastructure/context'
+import jwt from 'jsonwebtoken'
 
 export const createTestServer = () => {
   const typeDefs = readFileSync(join(__dirname, '../interfaces/schema.graphql'), 'utf8')
@@ -18,13 +16,24 @@ export const createTestServer = () => {
     resolvers,
   })
 
-  const startServer = async () => {
-    const { url } = await startStandaloneServer(server, {
-      context: async ({ req }) => createContext(req, pubsub),
-      listen: { port: 0 },
-    })
-    return { server, url, prisma }
+  const createTestContext = () => ({
+    prisma,
+    userId: null,
+    pubsub,
+  })
+
+  const createAuthenticatedContext = (token: string) => {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string }
+      return {
+        prisma,
+        userId: decoded.userId,
+        pubsub,
+      }
+    } catch {
+      return createTestContext()
+    }
   }
 
-  return { server, prisma, startServer }
+  return { server, prisma, createTestContext, createAuthenticatedContext }
 }

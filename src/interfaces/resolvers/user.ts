@@ -9,11 +9,11 @@ export const userResolvers = {
   },
   Mutation: {
     register: async (_: any, args: any, ctx: any) => {
-      console.log('args', args)
       const hashed = await hashPassword(args.password)
       const user = await ctx.prisma.user.create({
         data: { email: args.email, password: hashed },
       })
+
       return createJWT(user.id)
     },
     login: async (_: any, args: any, ctx: any) => {

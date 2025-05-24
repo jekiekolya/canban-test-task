@@ -1,21 +1,23 @@
 export const cardResolvers = {
   Mutation: {
-    createCard: async (_: any, { columnId, content }: any, ctx: any) => {
+    createCard: async (_: any, { columnId, content, order, title }: any, ctx: any) => {
       if (!ctx.userId) throw new Error('Not authenticated')
       const card = await ctx.prisma.card.create({
         data: {
           content,
           columnId,
+          order,
+          title,
         },
       })
       ctx.pubsub.publish('CARD_UPDATED', { cardUpdated: card })
       return card
     },
-    updateCard: async (_: any, { id, content }: any, ctx: any) => {
+    updateCard: async (_: any, { id, content, order, title }: any, ctx: any) => {
       if (!ctx.userId) throw new Error('Not authenticated')
       const card = await ctx.prisma.card.update({
         where: { id },
-        data: { content },
+        data: { content, order, title },
       })
       ctx.pubsub.publish('CARD_UPDATED', { cardUpdated: card })
       return card
