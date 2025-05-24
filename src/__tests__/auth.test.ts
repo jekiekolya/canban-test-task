@@ -1,36 +1,47 @@
-import request from 'supertest'
 import { createTestServer } from '../utils/testServer'
 
-const { server, prisma } = createTestServer()
+let server: any
+let prisma: any
+
+beforeAll(async () => {
+  const result = createTestServer()
+  server = result.server
+  prisma = result.prisma
+  await result.startServer()
+})
+
+afterAll(async () => {
+  await prisma.user.deleteMany()
+  await prisma.$disconnect()
+})
 
 describe('Auth', () => {
   const testEmail = 'test@example.com'
   const testPassword = 'testpass123'
   let token = ''
 
-  afterAll(async () => {
-    await prisma.user.deleteMany()
-  })
-
   it('registers a user', async () => {
-    const res = await request(server)
-      .post('/graphql')
-      .send({
-        query: `mutation { register(email: "${testEmail}", password: "${testPassword}") { token user { email } } }`,
-      })
+    const res = await server.executeOperation({
+      query: `mutation Register($email: String!, $password: String!) {
+        register(email: $email, password: $password)
+      }`,
+      variables: { email: testEmail, password: testPassword },
+    })
 
-    expect(res.body.data.register.token).toBeTruthy()
-    expect(res.body.data.register.user.email).toBe(testEmail)
-    token = res.body.data.register.token
+    expect(res.body.singleResult.errors).toBeUndefined()
+    expect(res.body.singleResult.data?.register).toBeTruthy()
+    token = res.body.singleResult.data?.register
   })
 
   it('logs in a user', async () => {
-    const res = await request(server)
-      .post('/graphql')
-      .send({
-        query: `mutation { login(email: "${testEmail}", password: "${testPassword}") { token } }`,
-      })
+    const res = await server.executeOperation({
+      query: `mutation Login($email: String!, $password: String!) {
+        login(email: $email, password: $password)
+      }`,
+      variables: { email: testEmail, password: testPassword },
+    })
 
-    expect(res.body.data.login.token).toBeTruthy()
+    expect(res.body.singleResult.errors).toBeUndefined()
+    expect(res.body.singleResult.data?.login).toBeTruthy()
   })
 })

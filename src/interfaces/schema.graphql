@@ -38,12 +38,16 @@ type Mutation {
   register(email: String!, password: String!): String!
 
   createBoard(title: String!): Board!
-  createColumn(boardId: String!, title: String!, order: Int!): Column!
-  createCard(columnId: String!, title: String!, order: Int!, description: String): Card!
+  updateBoard(id: ID!, title: String!): Board!
+  deleteBoard(id: ID!): Boolean!
 
+  createColumn(boardId: String!, title: String!, order: Int!): Column!
+  updateColumn(id: ID!, title: String, order: Int): Column!
+  deleteColumn(id: ID!): Boolean!
+
+  createCard(columnId: String!, title: String!, order: Int!, description: String): Card!
   updateCard(id: ID!, title: String, description: String, order: Int): Card!
   moveCard(id: ID!, newColumnId: String!, newOrder: Int!): Card!
-
   deleteCard(id: ID!): Boolean!
 }
 

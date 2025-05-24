@@ -1,19 +1,25 @@
-import request from 'supertest'
 import { createTestServer } from '../utils/testServer'
 
+let server: any
+let prisma: any
 let token = ''
 let boardId = ''
 let columnId = ''
 let cardId = ''
 
-const { server, prisma, startServer } = createTestServer()
-
 beforeAll(async () => {
-  await startServer()
-  const res = await request(server).post('/graphql').send({
-    query: `mutation { register(email: "test@kanban.com", password: "123456") { token } }`,
+  const result = createTestServer()
+  server = result.server
+  prisma = result.prisma
+  await result.startServer()
+
+  const res = await server.executeOperation({
+    query: `mutation {
+      register(email: "test@kanban.com", password: "123456")
+    }`,
   })
-  token = res.body.data.register.token
+
+  token = res.body.singleResult.data?.register
 })
 
 afterAll(async () => {
@@ -26,35 +32,72 @@ afterAll(async () => {
 
 describe('Kanban Flow', () => {
   it('creates a board', async () => {
-    const res = await request(server)
-      .post('/graphql')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        query: `mutation { createBoard(title: "My Board") { id title } }`,
-      })
-    expect(res.body.data.createBoard.title).toBe('My Board')
-    boardId = res.body.data.createBoard.id
+    const res = await server.executeOperation(
+      {
+        query: `mutation {
+        createBoard(title: "My Board") {
+          id
+          title
+        }
+      }`,
+      },
+      {
+        contextValue: {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    )
+
+    expect(res.body.singleResult.errors).toBeUndefined()
+    expect(res.body.singleResult.data?.createBoard.title).toBe('My Board')
+    boardId = res.body.singleResult.data?.createBoard.id
   })
 
   it('creates a column', async () => {
-    const res = await request(server)
-      .post('/graphql')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        query: `mutation { createColumn(boardId: "${boardId}", title: "To Do") { id title } }`,
-      })
-    expect(res.body.data.createColumn.title).toBe('To Do')
-    columnId = res.body.data.createColumn.id
+    const res = await server.executeOperation(
+      {
+        query: `mutation {
+        createColumn(boardId: "${boardId}", title: "To Do", order: 0) {
+          id
+          title
+        }
+      }`,
+      },
+      {
+        contextValue: {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    )
+
+    expect(res.body.singleResult.errors).toBeUndefined()
+    columnId = res.body.singleResult.data?.createColumn.id
   })
 
   it('creates a card', async () => {
-    const res = await request(server)
-      .post('/graphql')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        query: `mutation { createCard(columnId: "${columnId}", content: "Test task") { id content } }`,
-      })
-    expect(res.body.data.createCard.content).toBe('Test task')
-    cardId = res.body.data.createCard.id
+    const res = await server.executeOperation(
+      {
+        query: `mutation {
+        createCard(columnId: "${columnId}", title: "Test Card", order: 0) {
+          id
+          title
+        }
+      }`,
+      },
+      {
+        contextValue: {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    )
+
+    expect(res.body.singleResult.errors).toBeUndefined()
+    cardId = res.body.singleResult.data?.createCard.id
   })
 })

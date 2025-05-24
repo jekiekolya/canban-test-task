@@ -1,9 +1,9 @@
 import { ApolloServer } from 'apollo-server'
 import { readFileSync } from 'fs'
+import { PubSub } from 'graphql-subscriptions'
 import { resolvers } from './interfaces/resolvers'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { createContext } from './infrastructure/context'
-import { PubSub } from 'graphql-subscriptions'
 import dotenv from 'dotenv'
 
 dotenv.config()
