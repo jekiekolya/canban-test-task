@@ -33,10 +33,10 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await prisma.card.deleteMany()
-  await prisma.column.deleteMany()
-  await prisma.board.deleteMany()
-  await prisma.user.deleteMany()
+  await prisma.user.delete({
+    where: { email: 'test@kanban.com' },
+  })
+
   await prisma.$disconnect()
 })
 

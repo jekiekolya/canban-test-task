@@ -30,7 +30,7 @@ type Card {
 
 type Query {
   me: User
-  boards: [Board!]!
+  boards(limit: Int, offset: Int): [Board!]!
 }
 
 type Mutation {
@@ -47,7 +47,6 @@ type Mutation {
 
   createCard(columnId: String!, title: String!, order: Int!, description: String): Card!
   updateCard(id: ID!, title: String, description: String, order: Int): Card!
-  moveCard(id: ID!, newColumnId: String!, newOrder: Int!): Card!
   deleteCard(id: ID!): Boolean!
 }
 

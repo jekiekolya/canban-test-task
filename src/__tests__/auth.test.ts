@@ -12,7 +12,9 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await prisma.user.deleteMany()
+  await prisma.user.delete({
+    where: { email: 'test@example.com' },
+  })
   await prisma.$disconnect()
 })
 

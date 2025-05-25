@@ -4,7 +4,12 @@ export const cardResolvers = {
   Mutation: {
     createCard: async (
       _: any,
-      { columnId, description, order, title }: any,
+      {
+        columnId,
+        description,
+        order,
+        title,
+      }: { columnId: string; description: string; order: number; title: string },
       ctx: GraphQLContext
     ) => {
       if (!ctx.userId) throw new Error('Not authenticated')
@@ -28,7 +33,16 @@ export const cardResolvers = {
       return card
     },
 
-    updateCard: async (_: any, { id, description, order, title }: any, ctx: GraphQLContext) => {
+    updateCard: async (
+      _: any,
+      {
+        id,
+        description,
+        order,
+        title,
+      }: { id: string; description?: string; order?: number; title?: string },
+      ctx: GraphQLContext
+    ) => {
       if (!ctx.userId) throw new Error('Not authenticated')
 
       // Check if card exists
@@ -46,7 +60,7 @@ export const cardResolvers = {
       return card
     },
 
-    deleteCard: async (_: any, { id }: any, ctx: GraphQLContext) => {
+    deleteCard: async (_: any, { id }: { id: string }, ctx: GraphQLContext) => {
       if (!ctx.userId) throw new Error('Not authenticated')
 
       // Check if card exists

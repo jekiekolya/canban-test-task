@@ -8,7 +8,7 @@ export const userResolvers = {
     },
   },
   Mutation: {
-    register: async (_: any, args: any, ctx: any) => {
+    register: async (_: any, args: { email: string; password: string }, ctx: any) => {
       const hashed = await hashPassword(args.password)
       const user = await ctx.prisma.user.create({
         data: { email: args.email, password: hashed },
@@ -16,7 +16,7 @@ export const userResolvers = {
 
       return createJWT(user.id)
     },
-    login: async (_: any, args: any, ctx: any) => {
+    login: async (_: any, args: { email: string; password: string }, ctx: any) => {
       const user = await ctx.prisma.user.findUnique({ where: { email: args.email } })
       if (!user) throw new Error('User not found')
       const valid = await comparePasswords(args.password, user.password)

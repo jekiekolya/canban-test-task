@@ -2,7 +2,7 @@ import { GraphQLContext } from '../../infrastructure/context'
 
 export const boardResolvers = {
   Query: {
-    boards: async (_: any, __: any, ctx: GraphQLContext) => {
+    boards: async (_: any, args: { limit?: number; offset?: number }, ctx: GraphQLContext) => {
       if (!ctx.userId) throw new Error('Not authenticated')
 
       return ctx.prisma.board.findMany({
@@ -14,12 +14,15 @@ export const boardResolvers = {
             },
           },
         },
+        take: args.limit,
+        skip: args.offset,
+        orderBy: { createdAt: 'desc' },
       })
     },
   },
 
   Mutation: {
-    createBoard: async (_: any, { title }: any, ctx: GraphQLContext) => {
+    createBoard: async (_: any, { title }: { title: string }, ctx: GraphQLContext) => {
       if (!ctx.userId) throw new Error('Not authenticated')
 
       const board = await ctx.prisma.board.create({
@@ -37,7 +40,11 @@ export const boardResolvers = {
       return board
     },
 
-    updateBoard: async (_: any, { id, title }: any, ctx: GraphQLContext) => {
+    updateBoard: async (
+      _: any,
+      { id, title }: { id: string; title: string },
+      ctx: GraphQLContext
+    ) => {
       if (!ctx.userId) throw new Error('Not authenticated')
 
       const existingBoard = await ctx.prisma.board.findUnique({ where: { id } })
@@ -65,7 +72,7 @@ export const boardResolvers = {
       return updatedBoard
     },
 
-    deleteBoard: async (_: any, { id }: any, ctx: GraphQLContext) => {
+    deleteBoard: async (_: any, { id }: { id: string }, ctx: GraphQLContext) => {
       if (!ctx.userId) throw new Error('Not authenticated')
 
       const existingBoard = await ctx.prisma.board.findUnique({
