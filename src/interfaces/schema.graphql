@@ -7,7 +7,7 @@ type Board {
   id: ID!
   title: String!
   userId: String!
-  columns: [Column!]!
+  columns: [Column]
   createdAt: String!
   updatedAt: String!
 }
@@ -16,7 +16,7 @@ type Column {
   id: ID!
   title: String!
   boardId: String!
-  cards: [Card!]!
+  cards: [Card]
   order: Int!
 }
 

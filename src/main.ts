@@ -1,4 +1,8 @@
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
+import express from 'express'
+import { createServer } from 'http'
+import { execute, subscribe } from 'graphql'
+import { SubscriptionServer } from 'subscriptions-transport-ws'
 import { readFileSync } from 'fs'
 import { PubSub } from 'graphql-subscriptions'
 import { resolvers } from './interfaces/resolvers'
@@ -8,17 +12,55 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-const typeDefs = readFileSync('./src/interfaces/schema.graphql', 'utf8')
+const startServer = async () => {
+  const typeDefs = readFileSync('./src/interfaces/schema.graphql', 'utf8')
+  const pubsub = new PubSub()
+  const schema = makeExecutableSchema({ typeDefs, resolvers })
 
-const pubsub = new PubSub()
+  const app = express()
+  const httpServer = createServer(app)
 
-const schema = makeExecutableSchema({ typeDefs, resolvers })
+  const server = new ApolloServer({
+    schema,
+    context: ({ req }) => createContext(req, pubsub),
+    plugins: [
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              subscriptionServer.close()
+            },
+          }
+        },
+      },
+    ],
+  })
 
-const server = new ApolloServer({
-  schema,
-  context: ({ req }) => createContext(req, pubsub),
-})
+  await server.start()
 
-server.listen().then(({ url }) => {
-  console.log(`🚀 Server ready at ${url}`)
+  server.applyMiddleware({ app })
+
+  const subscriptionServer = SubscriptionServer.create(
+    {
+      schema,
+      execute,
+      subscribe,
+      onConnect: () => createContext({} as any, pubsub),
+      onDisconnect: () => console.log('🔌 Client disconnected'),
+    },
+    {
+      server: httpServer,
+      path: '/graphql',
+    }
+  )
+
+  const PORT = process.env.PORT || 4000
+  httpServer.listen(PORT, () => {
+    console.log(`HTTP: http://localhost:${PORT}${server.graphqlPath}`)
+    console.log(`WS:   ws://localhost:${PORT}${server.graphqlPath}`)
+  })
+}
+
+startServer().catch((err) => {
+  console.error('Server failed to start:', err)
 })

@@ -13,7 +13,7 @@ export interface GraphQLContext {
 }
 
 export const createContext = (req: IncomingMessage, pubsub: PubSub): GraphQLContext => {
-  const authHeader = req.headers?.authorization || ''
+  const authHeader = req?.headers?.authorization || ''
   const token = authHeader.replace('Bearer ', '')
 
   let userId: string | null = null
